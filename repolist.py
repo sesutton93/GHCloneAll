@@ -8,8 +8,8 @@ import logging
 import os
 from github import Github
 import sys
-
-
+from git import Repo
+from tqdm import tqdm
 
 LOG = logging.getLogger('repolist')
 
@@ -17,7 +17,6 @@ LOG = logging.getLogger('repolist')
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('--username', '-u')
-    p.add_argument('--password', '-p')
     p.add_argument('--token', '-t')
     p.add_argument('--debug', '-d',
                    action='store_const',
@@ -34,17 +33,23 @@ def main():
         level=args.loglevel)
     reqlog = logging.getLogger('requests')
     reqlog.setLevel(logging.WARN)
-    if args.token:
-        g = Github(args.token)
-    else:
-        g = Github(args.username, args.password)
+
+    g = Github(args.token)
+
     user = g.get_user()
-    repos = [repo for repo in user.get_repos(type='private')]
+    repos = [repo for repo in user.get_repos(type='private') if args.username
+in repo.full_name]
 
-    for repo in repos:
-        print(repo.clone_url)
-
-
+    for repo in tqdm(repos):
+        name = repo.name
+        full_name = repo.full_name
+        path = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir),
+name))
+        print(f"Cloning {name} from {full_name} to {path}")
+        dir = os.listdir(path)
+        if len(dir) == 0: 
+            Repo.clone_from(f"https://{args.token}@github.com/{full_name}.git",
+path)
 
 if __name__ == '__main__':
     main()
