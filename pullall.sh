@@ -1,5 +1,5 @@
 #!/bin/bash
-USER=sesutton93
-TOKEN=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
+USER=<USER>
+TOKEN=<TOKEN>
 
 python repolist.py -u ${USER} -t ${TOKEN}
